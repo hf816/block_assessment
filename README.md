@@ -1,3 +1,4 @@
+
 # Block implementation
 
 ## Goal
@@ -54,3 +55,4 @@ I will evaluate your solution based on:
 1. Correctness (does it satisfy the test cases?)
 2. Elegance (is the solution clean, clear and well factored?)
 3. Process (did you take a systematic approach to solving the problem?)
+
