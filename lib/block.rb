@@ -131,16 +131,21 @@ class Block
   # = Operators =
   # =============
   
-  # TODO use trim etc
-  # 
   # Return the result of adding the other Block (or Blocks) to self.
-  # TODO - handle for multiple others
-
   def add (other)
-    if overlaps?(other)
+    if other.is_a? Array
+      # Recursion
+      sorted_blocks = (other << self).sort_by(&:top)
+      sorted_blocks[1..-1].inject([sorted_blocks[0]]) do |result, block|
+        last_block = result.pop
+        result + (last_block + block)
+      end
+    elsif overlaps? other
+      # Base condition in recursive approach
       [Block.new([top, other.top].min, [bottom, other.bottom].max)]
     else
-      (other <=> self).negative? ? [other, self] : [self, other]
+      # Base condition in recursive approach
+      [self, other].sort_by(&:top)
     end
   end
   
