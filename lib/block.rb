@@ -131,16 +131,41 @@ class Block
   # = Operators =
   # =============
   
+  # TODO use trim etc
+  # 
   # Return the result of adding the other Block (or Blocks) to self.
+  # TODO - handle for multiple others
 
   def add (other)
-    # Implement.
+    if overlaps?(other)
+      [Block.new([top, other.top].min, [bottom, other.bottom].max)]
+    else
+      (other <=> self).negative? ? [other, self] : [self, other]
+    end
   end
   
   # Return the result of subtracting the other Block (or Blocks) from self.
-
   def subtract (other)
-    # Implement.
+    if other.is_a? Array
+      result = []
+      other.each_cons(2) do |block_a, block_b|
+        new_block = Block.new(block_a.bottom, block_b.top)
+        result << new_block if covers?(new_block)
+      end
+      result
+    elsif !overlaps? other
+      [self]
+    elsif self == other
+      []
+    elsif surrounds?(other)
+      [trim_to(other.top), trim_from(other.bottom)]
+    elsif !other.covers?(self) && other.intersects_top?(self)
+      [Block.new(other.bottom, bottom)]
+    elsif !other.covers?(self) && other.intersects_bottom?(self)
+      [Block.new(top, other.top)]
+    else
+      []
+    end
   end
 
   alias :- :subtract
@@ -160,6 +185,6 @@ class Block
   end
 
   def merge (others)
-    # Implement.
+    Block.merge(others << self)
   end
 end
