@@ -132,15 +132,45 @@ class Block
   # =============
   
   # Return the result of adding the other Block (or Blocks) to self.
-
   def add (other)
-    # Implement.
+    if other.is_a? Array
+      # Recursion
+      sorted_blocks = Block.asc_sort(other << self)
+      sorted_blocks[1..-1].inject([sorted_blocks[0]]) do |result, block|
+        last_block = result.pop
+        result + (last_block + block)
+      end
+    elsif overlaps? other
+      # Base condition in recursive approach
+      [union(other)]
+    else
+      # Base condition in recursive approach
+      Block.asc_sort [self, other]
+    end
   end
   
   # Return the result of subtracting the other Block (or Blocks) from self.
-
   def subtract (other)
-    # Implement.
+    if other.is_a? Array
+      result = []
+      Block.asc_sort(other).each_cons(2) do |block_a, block_b|
+        # If the range between two consecutive blocks that are being subtracted
+        #   is included in self block, add it to the `result`
+        new_block = Block.new(block_a.bottom, block_b.top)
+        result << new_block if covers?(new_block)
+      end
+      result
+    elsif !overlaps? other
+      [self]
+    elsif self == other
+      []
+    elsif surrounds?(other)
+      split(other)
+    elsif !other.covers?(self)
+      other.intersects_top?(self) ? [trim_from(other.bottom)] : [trim_to(other.top)]
+    else
+      []
+    end
   end
 
   alias :- :subtract
@@ -150,7 +180,7 @@ class Block
   # An array of blocks created by adding each block to the others.
 
   def self.merge (blocks)
-    blocks.sort_by(&:top).inject([]) do |blocks, b|
+    Block.asc_sort(blocks).inject([]) do |blocks, b|
       if blocks.length > 0 && blocks.last.overlaps?(b)
         blocks[0...-1] + (blocks.last + b)
       else
@@ -159,7 +189,12 @@ class Block
     end
   end
 
+  # Ascending sort i.e. sort by top
+  def self.asc_sort(blocks)
+    blocks.sort_by(&:top)
+  end
+
   def merge (others)
-    # Implement.
+    Block.merge(others << self)
   end
 end
